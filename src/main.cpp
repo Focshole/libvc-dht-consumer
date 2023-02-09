@@ -44,7 +44,11 @@ void downloadAndLoadBinary(const std::string &socket,
     exit(-1);
   }
   // Call the function
-  auto sha256 = (sha256_signature_t)version->getSymbol(functionName);
+  auto sha256 = (sha256_signature_t)version->getSymbol();
+  if (!sha256) {
+    std::cerr << "Something bad happened, the symbol " << functionName <<" is not available "<<std::endl;
+    return;
+  }
   std::cout << "Calling " << functionName << " on \"Hello World!\""
             << std::endl;
   std::cout << sha256("Hello World!") << std::endl;
