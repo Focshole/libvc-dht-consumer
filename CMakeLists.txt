@@ -6,6 +6,7 @@ project(
   LANGUAGES CXX C)
 # target
 set(EXE_NAME "libvc_dht_consumer")
+set(LIB_NAME "vc_dht_cons")
 # look for dependencies
 list(APPEND CMAKE_MODULE_PATH "/usr/local/lib/cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -38,13 +39,13 @@ set(DEP_LIBS ${DEP_LIBS} "-lzmq")
 set(DEP_LIBS ${DEP_LIBS} ${LIBVC_LIBRARIES} "-lzmq" "-lstdc++")
 
 # sources
-set(SRC_PROD
+set(SRC_CONS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/consumer-args.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/opendht-extra-utils.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/libvc.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/networking.cpp")
-set(HDR_PROD
+set(HDR_CONS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/consumer-args.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/libvc.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/opendht-extra-utils.hpp"
@@ -67,12 +68,18 @@ add_definitions(-DCLANG_EXE_NAME="${CLANG_EXE_NAME}")
 add_definitions(-DOPT_EXE_NAME="${OPT_EXE_NAME}")
 add_definitions(-DLLVM_TOOLS_BINARY_DIR="${LLVM_TOOLS_BINARY_DIR}")
 # finalize target
-add_executable(${EXE_NAME} ${SRC_PROD} ${HDR_PROD})
+add_executable(${EXE_NAME} ${SRC_CONS} ${HDR_CONS})
 target_link_libraries(${EXE_NAME} ${DEP_LIBS})
 
 # install path
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
 endif()
-
+# Setup library to install
+add_library(${LIB_NAME} STATIC ${SRC_CONS} ${HDR_CONS})
+target_link_libraries(${LIB_NAME} ${DEP_LIBS})
+install(TARGETS ${LIB_NAME} DESTINATION lib)
+install(FILES ${HDR_CONS} DESTINATION include/libvc_dht_consucer)
+install(FILES ${FIND_LIBVC_OUTPUT} DESTINATION lib/cmake)
+# Install binaries too
 install(TARGETS ${EXE_NAME} DESTINATION bin)
