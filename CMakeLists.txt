@@ -1,42 +1,42 @@
 cmake_minimum_required(VERSION 3.20)
 project(
-  libVC_dht_consumer
+  libVersioningCompilerConsumer
   VERSION 0.1
   DESCRIPTION "libVC dht code consumer"
   LANGUAGES CXX C)
-# target
-set(EXE_NAME "libvc_dht_consumer")
-set(LIB_NAME "vc_dht_cons")
+# ----- Set the name of the Version Compiler based library
+set(EXE_NAME "libVersioningCompilerConsumer")
+set(LIB_NAME "VersioningCompilerCons")
 # look for dependencies
 list(APPEND CMAKE_MODULE_PATH "/usr/local/lib/cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-# ----- Set the name of the Version Compiler library
-
+# Check that libVersioningCompiler is installed
 find_package(LibVersioningCompiler REQUIRED)
 include_directories("${LIBVC_INCLUDE_DIRS}" "${CMAKE_SOURCE_DIR}/include")
 link_directories(${LIVC_LIB_DIR})
-
-# Check that opendht is installed
+# Check that gnuTLS is installed (required for importIdentity)
 find_package(GnuTLS REQUIRED)
 include_directories(${GNUTLS_INCLUDE_DIR})
 link_directories(${GNUTLS_LIBRARIES})
-set(DEP_LIBS ${DEP_LIBS} "gnutls")
+set(LIBVC_CONS_DEP_LIBS ${LIBVC_CONS_DEP_LIBS} "gnutls")
+
+# Check that opendht is installed
 find_package(opendht REQUIRED)
 if(NOT opendht_FOUND)
   message(FATAL_ERROR "opendht not found")
 endif(NOT opendht_FOUND)
-set(DEP_LIBS ${DEP_LIBS} "opendht")
-
+set(LIBVC_CONS_DEP_LIBS ${LIBVC_CONS_DEP_LIBS} "opendht")
+# Check that zeromq is installed (custom find_package)
 find_package(libzmq REQUIRED)
 if(NOT LIBZMQ_FOUND)
   message(FATAL_ERROR "libzmq not found")
 endif(NOT LIBZMQ_FOUND)
 include_directories(${LIBZMQ_INCLUDE_DIRS})
 link_directories(${LIBZMQ_LIBRARIES})
-set(DEP_LIBS ${DEP_LIBS} "-lzmq")
+set(LIBVC_CONS_DEP_LIBS ${LIBVC_CONS_DEP_LIBS} "-lzmq")
 
 # finalize dependencies
-set(DEP_LIBS ${DEP_LIBS} ${LIBVC_LIBRARIES} "-lzmq" "-lstdc++")
+set(LIBVC_CONS_DEP_LIBS ${LIBVC_CONS_DEP_LIBS} ${LIBVC_LIBRARIES} "-lstdc++")
 
 # sources
 set(SRC_CONS
@@ -60,16 +60,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
-# Adjust paths for clang
-add_definitions(-DLLVM_VERSION_MAJOR=${LLVM_VERSION_MAJOR})
-add_definitions(-DCLANG_EXE_FULLPATH="${CLANG_EXE_FULLPATH}")
-add_definitions(-DOPT_EXE_FULLPATH="${OPT_EXE_FULLPATH}")
-add_definitions(-DCLANG_EXE_NAME="${CLANG_EXE_NAME}")
-add_definitions(-DOPT_EXE_NAME="${OPT_EXE_NAME}")
-add_definitions(-DLLVM_TOOLS_BINARY_DIR="${LLVM_TOOLS_BINARY_DIR}")
+
+# configure
+set(FIND_LIBVC_CONS_OUTPUT
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/FindLibVersioningCompilerCons.cmake")
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/config/FindLibVersioningCompilerCons.in.cmake"
+  "${FIND_LIBVC_CONS_OUTPUT}" @ONLY)
 # finalize target
 add_executable(${EXE_NAME} ${SRC_CONS} ${HDR_CONS})
-target_link_libraries(${EXE_NAME} ${DEP_LIBS})
+target_link_libraries(${EXE_NAME} ${LIBVC_CONS_DEP_LIBS})
 
 # install path
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -77,9 +77,9 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 # Setup library to install
 add_library(${LIB_NAME} STATIC ${SRC_CONS} ${HDR_CONS})
-target_link_libraries(${LIB_NAME} ${DEP_LIBS})
+target_link_libraries(${LIB_NAME} ${LIBVC_CONS_DEP_LIBS})
 install(TARGETS ${LIB_NAME} DESTINATION lib)
-install(FILES ${HDR_CONS} DESTINATION include/libvc_dht_consucer)
-install(FILES ${FIND_LIBVC_OUTPUT} DESTINATION lib/cmake)
+install(FILES ${HDR_CONS} DESTINATION include/versioningCompilerCons)
+install(FILES ${FIND_LIBVC_CONS_OUTPUT} DESTINATION lib/cmake)
 # Install binaries too
 install(TARGETS ${EXE_NAME} DESTINATION bin)

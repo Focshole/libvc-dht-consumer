@@ -36,7 +36,7 @@ args parseArgs(int argc, char **argv) {
   args params;
   int opt;
   int optionIndex = 0;
-  while ((opt = getopt_long(argc, argv, "h:c:p:P:s:", args_getopt_struct,
+  while ((opt = getopt_long(argc, argv, "hc:p:P:s:", args_getopt_struct,
                             &optionIndex)) != -1) {
     switch (opt) {
     case 'c':
