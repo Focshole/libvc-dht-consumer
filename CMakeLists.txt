@@ -42,11 +42,13 @@ set(LIBVC_CONS_DEP_LIBS ${LIBVC_CONS_DEP_LIBS} ${LIBVC_LIBRARIES} "-lstdc++")
 set(SRC_CONS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/consumer-args.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/consumer-utils.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/opendht-extra-utils.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/libvc.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/networking.cpp")
 set(HDR_CONS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/consumer-args.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/consumer-utils.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/libvc.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/opendht-extra-utils.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/networking.hpp")

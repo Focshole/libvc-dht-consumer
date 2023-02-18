@@ -20,7 +20,7 @@ struct args {
 };
 
 void printUsage(const char *filename) {
-  std::cout << "Usage: " << filename << " [-hcpPs]\n"
+  std::cout << "Usage: " << filename << " [-h] [-cpPs arg]\n"
             << "-c\t\tWhere to save/load private key and certificate. Specify "
                "the path without \".pem\" or \".crt\"\n"
             << "-h\t\tPrint this help\n"
@@ -80,7 +80,7 @@ args parseArgs(int argc, char **argv) {
   return params;
 }
 
-params parseAndHandleParams(int argc, char **argv) {
+dht_cons::params parseAndHandleParams(int argc, char **argv) {
 
   auto params = parseArgs(argc, argv);
   if (params.priv_cert == "") {

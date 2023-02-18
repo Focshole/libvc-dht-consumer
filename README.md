@@ -18,7 +18,7 @@ It requires all [libVersioningCompiler dependencies](https://github.com/skeru/li
 
 ```bash
  ./build/libVersioningCompilerConsumer -h
- Usage: ./build/libVersioningCompilerConsumer [-h] [-cpPs args]
+ Usage: ./build/libVersioningCompilerConsumer [-h] [-cpPs arg]
 -c              Where to save/load private key and certificate. Specify it without ".pem" or ".crt"
 -h              Print this help
 -p              Private key certificate password to set/use. Default one is empty.

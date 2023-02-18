@@ -18,6 +18,6 @@
 #endif
 
 // load a version from a file
-vc::version_ptr_t fetchVersion(std::filesystem::path filePath,
-                               std::vector<std::string> functionNames);
+vc::version_ptr_t createVersionFromFile(std::filesystem::path filePath,
+                                        std::vector<std::string> functionNames);
 #endif // LIBVC_CONSUMER_HPP

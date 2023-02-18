@@ -6,61 +6,20 @@
 
 #include "consumer-args.hpp"
 #include "libvc.hpp"
-#include "networking.hpp"
 
 const std::string exampleFunctionName = "sha256";
-
 typedef std::string (*sha256_signature_t)(const std::string);
 
-void downloadAndLoadBinary(const std::string &socket,
-                           const std::string &functionName) {
-  // Download the binary and load it
-  auto bin_path = downloadBinary(socket);
-  if (bin_path.empty()) {
-    std::cerr << "Error while downloading binary. Aborting code loading."
-              << std::endl;
-    return;
-  }
-  std::cout << "Downloaded binary at " << bin_path << std::endl;
-  // Load the binary
-  auto version = fetchVersion(bin_path, {functionName});
-  if (!version->compile()) {
-    std::cerr << "version from " << bin_path << " failed to compile"
-              << std::endl;
-    if (version->hasGeneratedBin()) {
-      std::cerr << "version from " << bin_path << " has binary "
-                << version->getFileName_bin() << std::endl;
-    }
-    if (version->hasLoadedSymbol()) {
-      std::cerr << "version from " << bin_path << " has loaded symbol"
-                << std::endl;
-    }
-    exit(-1);
-  }
-  // Check that all symbols have been correctly loaded
-  if (!version->hasLoadedSymbol()) {
-    std::cerr << "version from " << bin_path << " hasn't loaded symbol"
-              << std::endl;
-    exit(-1);
-  }
-  // Call the function
-  auto sha256 = (sha256_signature_t)version->getSymbol();
-  if (!sha256) {
-    std::cerr << "Something bad happened, the symbol " << functionName <<" is not available "<<std::endl;
-    return;
-  }
-  std::cout << "Calling " << functionName << " on \"Hello World!\""
-            << std::endl;
-  std::cout << sha256("Hello World!") << std::endl;
-}
-
-bool dhtCallBack(const std::vector<std::shared_ptr<dht::Value>> &values) {
+bool exampleDhtCallBack(const std::vector<std::shared_ptr<dht::Value>> &values)
+{
   // Callback called when values are found
-  if (values.empty()) {
+  if (values.empty())
+  {
     std::cerr << "Called callback with no value! Returning." << std::endl;
     return false;
   }
-  if (values.size() > 1) {
+  if (values.size() > 1)
+  {
     std::cerr << "Warning: Multiple values found! Attempting with the first one"
               << std::endl;
   }
@@ -68,27 +27,44 @@ bool dhtCallBack(const std::vector<std::shared_ptr<dht::Value>> &values) {
   std::cout << "Found a socket supplying " << exampleFunctionName << ": "
             << socket << std::endl;
   // Download the binary and load it
-  downloadAndLoadBinary(socket, exampleFunctionName);
+
+  // grenerate a random name for the binary
+  uuid_t uuid;
+  char tmp[128];
+  uuid_generate(uuid);
+  uuid_unparse(uuid, tmp);
+  const std::filesystem::path where_to_save = std::filesystem::u8path(std::string(tmp) + ".so");
+
+  std::cout << "Downloading version and loading binary" << exampleFunctionName << ": "
+            << where_to_save << std::endl;
+  auto version = dht_cons::downloadVersion(socket, {exampleFunctionName}, where_to_save);
+  if (version == nullptr)
+  {
+    std::cerr << "Something bad happened, the version is not available " << std::endl;
+    return false;
+  }
+  // Return the first symbol only
+  auto sha256 = (sha256_signature_t)version->getSymbol();
+  if (!sha256)
+  {
+    std::cerr << "Something bad happened, the symbol " << exampleFunctionName << " is not available " << std::endl;
+    return false;
+  }
+  std::cout << "Calling " << exampleFunctionName << " on \"Hello World!\""
+            << std::endl;
+  std::cout << sha256("Hello World!") << std::endl;
   return true;
 }
-int main(int argc, char **argv) {
+
+int main(int argc, char **argv)
+{
   auto p = parseAndHandleParams(argc, argv);
-  dht::DhtRunner node;
-  // Launch a dht node on a new thread, using a
-  // generated EC key pair, and listen on port 4224.
-  // It is possible to use sockets too.
-  node.run(p.dht_port, p.identity, true);
-
+  auto node = dht_cons::bootstrapDHTNode(p);
   std::cout << "DHT node started on port " << p.dht_port << std::endl;
-
-  // Join the network through any running node,
-  // here using a known bootstrap node.
-  // It is possible to use sockets too.
-  if (p.dht_bootstrap_socket != "")
-    node.bootstrap(p.dht_bootstrap_socket);
   // Wait for the binary code to be available
-  node.get(exampleFunctionName, dhtCallBack);
+  node->get(exampleFunctionName, exampleDhtCallBack);
+  // Wait for the binary code for 10 seconds
   sleep(10);
-  node.join();
+  node->join();
   return 0;
 }
